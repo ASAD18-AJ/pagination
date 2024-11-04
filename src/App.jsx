@@ -1,33 +1,72 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
+
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [products, setProducts] = useState([])
+  const [page, setPage] = useState(1)
+
+  const fetchProducts = async () => {
+    const res = await fetch('https://fakestoreapiserver.reactbd.com/smart')
+    const data = await res.json();
+    if (data) {
+      setProducts(data)
+    }
+
+
+  }
+  // console.log(products)
+  useEffect(() => {
+    fetchProducts();
+  }, [])
+
+  const selectPageHandler = (selectedPage) => {
+    if(
+      selectedPage >= 1 &&
+      selectedPage <= products.length / 5 &&
+      selectedPage !== page
+    )
+    setPage(selectedPage)
+  }
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className="">
+        {products.length > 0 && (
+          <div className="products">
+            {products.slice(page * 5 - 5, page * 5).map((prod) => {
+              return (
+                <span className='products__single'  key={prod._id}>
+                  <img src={prod.image} alt="" />
+                  <span>{prod.title}</span>
+                </span>
+              )
+            })
+
+            }
+          </div>
+        )
+        }
+        {
+          products.length > 0 && (
+            <div className="pagination">
+              <span 
+              className={page > 1? "": "pagination__disable"}
+              onClick={()=> selectPageHandler(page -1)}>◀️</span>
+              {[...Array(products.length / 5)].map((_, i) => {
+                return <span onClick={() => selectPageHandler(i + 1)} key={i}
+                className={page===i+1?"pagination__selected":""}
+                >{i + 1}</span>
+              }
+              )}
+              <span onClick={()=> selectPageHandler(page + 1)}
+              className={page < products.length / 5 ? "": "pagination__disable"}
+              >▶️</span>
+            </div>
+          )
+        }
+
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
